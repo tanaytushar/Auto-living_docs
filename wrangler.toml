@@ -1,0 +1,20 @@
+name = "auto-living-docs"
+main = "index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# ── KV (session store) ───────────────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "9698b59d90864b5b9415fbc024360182"
+
+# ── Environment variables (set via: wrangler secret put VAR_NAME) ────────────
+# GITHUB_APP_ID
+# GITHUB_APP_PRIVATE_KEY      (PEM, base64-encoded)
+# GITHUB_WEBHOOK_SECRET
+# GITHUB_OAUTH_CLIENT_ID
+# GITHUB_OAUTH_CLIENT_SECRET
+# ANTHROPIC_API_KEY
+# APP_URL
+[site]
+bucket = "./landing"

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto-Living Docs — Docs that write themselves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #7c6af7;
+    --accent-dim: #3d3578;
+    --green: #22c55e;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --code-bg: #0d0d14;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; overflow-x: hidden; line-height: 1.6; }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 3rem;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo { font-family: 'DM Mono', monospace; font-size: 0.95rem; color: var(--accent); letter-spacing: 0.05em; }
+  .logo span { color: var(--muted); }
+
+  nav a { color: var(--muted); text-decoration: none; font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
+  nav a:hover { color: var(--text); }
+
+  .nav-cta { background: var(--accent); color: #fff !important; padding: 0.5rem 1.2rem; border-radius: 6px; transition: opacity 0.2s !important; }
+  .nav-cta:hover { opacity: 0.85; }
+
+  .hero { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 8rem 2rem 4rem; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(124,106,247,0.12); border: 1px solid rgba(124,106,247,0.3);
+    border-radius: 100px; padding: 0.35rem 1rem;
+    font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--accent);
+    margin-bottom: 2rem; animation: fadeUp 0.6s ease both;
+  }
+
+  .badge-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+  h1 { font-size: clamp(3rem, 8vw, 6.5rem); font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; margin-bottom: 1.5rem; animation: fadeUp 0.6s 0.1s ease both; }
+  h1 em { font-style: normal; color: var(--accent); }
+
+  .hero-sub { font-size: clamp(1rem, 2vw, 1.25rem); color: var(--muted); max-width: 560px; margin: 0 auto 2.5rem; font-weight: 400; animation: fadeUp 0.6s 0.2s ease both; }
+
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; animation: fadeUp 0.6s 0.3s ease both; }
+
+  .btn-primary { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--accent); color: #fff; text-decoration: none; padding: 0.85rem 2rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.02em; transition: transform 0.2s, opacity 0.2s; }
+  .btn-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+
+  .btn-secondary { display: inline-flex; align-items: center; gap: 0.5rem; background: transparent; color: var(--text); text-decoration: none; padding: 0.85rem 2rem; border-radius: 8px; font-weight: 600; font-size: 0.95rem; border: 1px solid var(--border); transition: border-color 0.2s, background 0.2s; }
+  .btn-secondary:hover { border-color: var(--muted); background: var(--surface); }
+
+  .terminal-wrap { position: relative; z-index: 1; max-width: 780px; margin: 4rem auto; padding: 0 2rem; animation: fadeUp 0.6s 0.4s ease both; }
+
+  .terminal { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; font-family: 'DM Mono', monospace; font-size: 0.82rem; }
+
+  .terminal-bar { background: var(--surface); padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--border); }
+  .terminal-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .terminal-body { padding: 1.5rem; line-height: 1.9; }
+
+  .t-muted { color: var(--muted); }
+  .t-green { color: var(--green); }
+  .t-accent { color: var(--accent); }
+  .t-yellow { color: #f59e0b; }
+  .t-white { color: var(--text); }
+
+  .section { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 6rem 2rem; }
+
+  .section-label { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1rem; }
+  .section-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+  .section-sub { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin-bottom: 4rem; }
+
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.75rem; transition: border-color 0.2s, transform 0.2s; }
+  .step:hover { border-color: var(--accent-dim); transform: translateY(-4px); }
+  .step-num { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--accent); letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .step h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .step p { color: var(--muted); font-size: 0.88rem; line-height: 1.6; }
+
+  .pricing { display: flex; gap: 1.5rem; flex-wrap: wrap; max-width: 860px; margin: 0 auto; }
+
+  .plan { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; flex: 1; min-width: 220px; transition: border-color 0.2s; }
+  .plan.featured { border-color: var(--accent); position: relative; }
+
+  .plan-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.75rem; border-radius: 100px; white-space: nowrap; }
+
+  .plan-name { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.75rem; }
+  .plan-price { font-size: 2.5rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.25rem; }
+  .plan-price span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+  .plan-desc { color: var(--muted); font-size: 0.85rem; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+  .plan-features li { font-size: 0.88rem; color: var(--muted); display: flex; align-items: center; gap: 0.5rem; }
+  .plan-features li::before { content: '→'; color: var(--accent); font-family: 'DM Mono', monospace; }
+
+  .cta-section { position: relative; z-index: 1; text-align: center; padding: 6rem 2rem; border-top: 1px solid var(--border); }
+  .cta-section h2 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1rem; }
+  .cta-section p { color: var(--muted); font-size: 1.05rem; margin-bottom: 2.5rem; }
+
+  footer { position: relative; z-index: 1; text-align: center; padding: 2rem; border-top: 1px solid var(--border); font-family: 'DM Mono', monospace; font-size: 0.75rem; color: var(--muted); }
+
+  .divider { position: relative; z-index: 1; height: 1px; background: var(--border); max-width: 1100px; margin: 0 auto; }
+
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  @media(max-width:640px){ nav{padding:1rem 1.5rem} .hero{padding:7rem 1.5rem 3rem} }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">auto-living-docs<span>.dev</span></div>
+  <div style="display:flex;gap:2rem;align-items:center">
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://github.com/apps/auto-living-docs-dev" class="nav-cta">Install free</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge">
+    <span class="badge-dot"></span>
+    Live in production · Free to install
+  </div>
+  <h1>Docs that write<br><em>themselves.</em></h1>
+  <p class="hero-sub">Merge a PR. Your documentation updates automatically. No manual work. No stale docs. Ever.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/apps/auto-living-docs-dev" class="btn-primary">Install on GitHub →</a>
+    <a href="#how" class="btn-secondary">See how it works</a>
+  </div>
+</section>
+
+<div class="terminal-wrap">
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dot" style="background:#ff5f57"></div>
+      <div class="terminal-dot" style="background:#febc2e"></div>
+      <div class="terminal-dot" style="background:#28c840"></div>
+      <span style="margin-left:0.5rem;color:var(--muted);font-size:0.75rem">auto-living-docs · live log</span>
+    </div>
+    <div class="terminal-body">
+      <div><span class="t-muted">[webhook]</span> <span class="t-white">PR #42 merged → tanaytushar/my-api</span></div>
+      <div><span class="t-muted">[diff]   </span> <span class="t-white">2 code files, </span><span class="t-yellow">3 changed symbols</span></div>
+      <div><span class="t-muted">[diff]   </span> <span class="t-accent">modified  function  processPayment</span></div>
+      <div><span class="t-muted">[diff]   </span> <span class="t-accent">added     function  validateCard</span></div>
+      <div><span class="t-muted">[index]  </span> <span class="t-white">processPayment → docs/payments.md §Processing</span></div>
+      <div><span class="t-muted">[rewrite]</span> <span class="t-white">Rewriting 2 sections...</span></div>
+      <div><span class="t-muted">[rewrite]</span> <span class="t-green">Done: §Processing payments</span></div>
+      <div><span class="t-muted">[rewrite]</span> <span class="t-green">Done: §Card validation</span></div>
+      <div><span class="t-green">✓ PR opened: docs: auto-update for PR #42</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<section class="section" id="how">
+  <div class="section-label">How it works</div>
+  <h2 class="section-title">Four steps.<br>Zero effort.</h2>
+  <p class="section-sub">Install once. Every merged PR automatically keeps your docs in sync.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01 — DETECT</div>
+      <h3>PR merged</h3>
+      <p>GitHub sends a webhook the instant a PR is merged. We receive it in under 100ms.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">02 — ANALYSE</div>
+      <h3>Diff extracted</h3>
+      <p>We scan the changed files and extract every modified function, class, and type signature.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">03 — MATCH</div>
+      <h3>Docs mapped</h3>
+      <p>We find exactly which doc sections mention the changed symbols — no false positives.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">04 — REWRITE</div>
+      <h3>PR opened</h3>
+      <p>AI rewrites only the affected sections in your team's voice. A PR opens for human review.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="section" id="pricing">
+  <div style="text-align:center;margin-bottom:4rem">
+    <div class="section-label">Pricing</div>
+    <h2 class="section-title">Simple. Per repo.</h2>
+    <p class="section-sub" style="margin:0 auto">No seats. No complicated tiers. Pay per repository.</p>
+  </div>
+  <div class="pricing">
+    <div class="plan">
+      <div class="plan-name">Starter</div>
+      <div class="plan-price">$19<span>/repo/mo</span></div>
+      <p class="plan-desc">Perfect for small teams getting started.</p>
+      <ul class="plan-features">
+        <li>Up to 50 PRs/month</li>
+        <li>1 docs repo linked</li>
+        <li>Standard AI rewriting</li>
+        <li>GitHub PR integration</li>
+      </ul>
+    </div>
+    <div class="plan featured">
+      <div class="plan-badge">Most popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$49<span>/repo/mo</span></div>
+      <p class="plan-desc">For teams who care about docs quality.</p>
+      <ul class="plan-features">
+        <li>Unlimited PRs/month</li>
+        <li>Custom voice profile</li>
+        <li>Multiple docs repos</li>
+        <li>Slack notifications</li>
+        <li>Priority support</li>
+      </ul>
+    </div>
+    <div class="plan">
+      <div class="plan-name">Team</div>
+      <div class="plan-price">$29<span>/repo/mo</span></div>
+      <p class="plan-desc">Volume discount for 5+ repositories.</p>
+      <ul class="plan-features">
+        <li>Everything in Pro</li>
+        <li>Shared org style profile</li>
+        <li>Admin dashboard</li>
+        <li>Audit log</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="cta-section">
+  <h2>Your docs are already<br>out of date.</h2>
+  <p>Install in 2 minutes. First repo is free for 14 days.</p>
+  <a href="https://github.com/apps/auto-living-docs-dev" class="btn-primary" style="font-size:1.1rem;padding:1rem 2.5rem">Install on GitHub →</a>
+</section>
+
+<footer>
+  © 2026 Auto-Living Docs · Built on Cloudflare Workers ·
+  <a href="mailto:hello@autolivingdocs.dev" style="color:var(--muted);text-decoration:none">hello@autolivingdocs.dev</a>
+</footer>
+
+</body>
+</html>
