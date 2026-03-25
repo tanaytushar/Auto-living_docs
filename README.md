@@ -205,8 +205,4 @@ npx wrangler secret put APP_URL
 
 > "Engineers hate writing docs. I built a bot that does it for them."
 
----
 
-## License
-
-MIT
